@@ -1,5 +1,13 @@
 import numpy as np
 
+def invert(A):
+    '''
+    Invert a binary number, put a 1 where a zero was
+    and vice versa
+    '''
+    B = np.array([0 if item == 1 else 1 for item in A])
+    return B
+
 class BinaryArray(object):
     '''
     Class to split a list/array of binary strings into
@@ -7,10 +15,11 @@ class BinaryArray(object):
     column holds the bit at the respective position (
     counting from the back).
     '''
-    def __init__(self, binary_strings):
+    def __init__(self, binary_strings, do_invert=False):
         # Check what the highest bit number is
         self.max_length = max([len(Ai) for Ai in binary_strings])
         self.binary_array = self.create_array(binary_strings)
+        self.do_invert = do_invert
         self.dominant_binary = self.find_dominant_binary()
     
     def create_array(self, binary_strings):
@@ -36,7 +45,12 @@ class BinaryArray(object):
         above 0.5 there were more 1's and vice versa.
         '''
         averages = self.binary_array.mean(axis=0)
-        rounded_averages = averages.round()
+        # numpy annoyingly uses bankers rounding to the nearest even value
+        # therefore use nextafter, to push .5 values to 0.5 + a tiny bit and
+        # round up
+        rounded_averages = np.rint(np.nextafter(averages, averages + np.ones_like(averages)))
+        if self.do_invert:
+            rounded_averages = invert(rounded_averages)
                
         return rounded_averages
         
@@ -58,10 +72,24 @@ class BinaryConverter(object):
             decimal += np.power(2,i)*item
         return int(decimal)
             
-def invert(A):
+
+def find_scrubber_number(BinaryArray):
     '''
-    Invert a binary number, put a 1 where a zero was
-    and vice versa
+    Find the oxygen relevant number, by eliminating all number
+    from the array which do not have the same bit at the first,
+    second, third.. position until only one number is left.
     '''
-    B = np.array([0 if item == 1 else 1 for item in A])
-    return B       
+
+    length, nbits = BinaryArray.binary_array.shape
+    i = 0
+    dominant_binary = BinaryArray.dominant_binary
+
+    while length > 1 and i < nbits:
+        BinaryArray.binary_array = BinaryArray.binary_array[np.where(BinaryArray.binary_array[:, i] == dominant_binary[i])[0]]
+        
+        length = BinaryArray.binary_array.shape[0]    
+        dominant_binary = BinaryArray.find_dominant_binary()
+        i = i + 1
+
+    result = np.array(BinaryArray.binary_array[0])
+    return result
