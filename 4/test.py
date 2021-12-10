@@ -29,11 +29,7 @@ class TestInput:
 
 
 class TestBingoBoards:
-    def test_mark_boards(self):
-        """
-        Test the marking of boards.
-        """
-        # setup a three dimension test array
+    def setup(self):
         test_number = 99
         d2_test_array = np.asarray(
             [
@@ -47,10 +43,23 @@ class TestBingoBoards:
         d2_test_array_2 = np.copy(d2_test_array)
         d2_test_array_2[3, 2] = test_number
         d2_test_array_2[3, 3] = test_number
+        d2_test_array_2[1, 0] = 0
+        d2_test_array_2[4, 0] = test_number
+
         d3_test_array = np.concatenate(([d2_test_array], [d2_test_array_2]))
 
         # Initialise BingBoard
         BingoBoard = BingoBoards(d3_test_array)
+
+        return BingoBoard
+
+    def test_mark_boards(self):
+        """
+        Test the marking of boards.
+        """
+        # setup a three dimension test array
+        test_number = 99
+        BingoBoard = self.setup()
 
         # First mark not completing
         BingoBoard.mark_boards(test_number)
@@ -61,4 +70,24 @@ class TestBingoBoards:
         BingoBoard.mark_boards(97)
         boolean = BingoBoard.check_boards()
         assert boolean == True
+
+    def test_score(self):
+        """
+        Check the final score of the board
+        """
+        # setup a three dimension test array
+        test_number = 99
+        final_test_number = 97
+        BingoBoard = self.setup()
+
+        # First mark not completing
+        BingoBoard.mark_boards(test_number)
+        boolean = BingoBoard.check_boards()
+        # Second Mark completing
+        BingoBoard.mark_boards(final_test_number)
+        boolean = BingoBoard.check_boards()
+
+        board_score = BingoBoard.get_board_score()
+
+        assert board_score == 793
 

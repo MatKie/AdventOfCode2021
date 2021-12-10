@@ -43,6 +43,9 @@ class BingoBoards(object):
             three dimension array of 5x5 matrices. 
         """
         self.matrices = matrices
+        self.n_matrices = matrices.shape[0]
+        self.boards_of_interest = []
+        self.bingoboard = None
 
     def mark_boards(self, drawn_number):
         """
@@ -60,6 +63,49 @@ class BingoBoards(object):
         """
         This method checks if a row or column of any board is zero. 
         """
+        bingo = False
         where_output = np.where(self.matrices == -1)
 
-        return False
+        boards, rows, columns = where_output
+
+        # Find which boards have more than four crossed out.
+        unclear_matrices = [
+            i for i in range(self.n_matrices) if i not in self.boards_of_interest
+        ]
+        for i in unclear_matrices:
+            if len(np.where(boards == i)[0]) > 4:
+                self.boards_of_interest.append(i)
+
+        # Check if either rows or columns has five times the same number
+        for n_board in self.boards_of_interest:
+            if bingo:
+                break
+            positions = np.where(boards == n_board)
+            for i in range(5):
+                if len(np.where(rows[positions] == i)[0]) > 4:
+                    bingo = True
+                    self.bingoboard = n_board
+                    break
+                elif len(np.where(columns[positions] == i)[0]) > 4:
+                    bingo = True
+                    self.bingoboard = n_board
+                    break
+
+        return bingo
+
+    def get_board_score(self):
+        """
+        Return the sum of the winning board, but only not crossed out fields.
+
+        Returns
+        -------
+        int
+            Board score
+        """
+        if self.bingoboard is not None:
+            bingoboard = np.where(
+                self.matrices[self.bingoboard] == -1, 0, self.matrices[self.bingoboard]
+            )
+            return np.sum(bingoboard)
+
+        return None
