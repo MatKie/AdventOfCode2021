@@ -45,7 +45,13 @@ class BingoBoards(object):
         self.matrices = matrices
         self.n_matrices = matrices.shape[0]
         self.boards_of_interest = []
-        self.bingoboard = None
+        self.past_bingoboards = []
+
+    @property
+    def bingoboard(self):
+        if len(self.past_bingoboards) == 0:
+            return None
+        return self.past_bingoboards[-1]
 
     def mark_boards(self, drawn_number):
         """
@@ -70,25 +76,26 @@ class BingoBoards(object):
 
         # Find which boards have more than four crossed out.
         unclear_matrices = [
-            i for i in range(self.n_matrices) if i not in self.boards_of_interest
+            i for i in range(self.n_matrices) if i not in self.past_bingoboards
         ]
-        for i in unclear_matrices:
-            if len(np.where(boards == i)[0]) > 4:
-                self.boards_of_interest.append(i)
+        boards_of_interest = [
+            i for i in unclear_matrices if len(np.where(boards == i)[0]) > 4
+        ]
 
         # Check if either rows or columns has five times the same number
-        for n_board in self.boards_of_interest:
-            if bingo:
-                break
+        for n_board in boards_of_interest:
+            # Removed for second part as only performance increasing
+            # if bingo:
+            #     break
             positions = np.where(boards == n_board)
             for i in range(5):
                 if len(np.where(rows[positions] == i)[0]) > 4:
                     bingo = True
-                    self.bingoboard = n_board
+                    self.past_bingoboards.append(n_board)
                     break
                 elif len(np.where(columns[positions] == i)[0]) > 4:
                     bingo = True
-                    self.bingoboard = n_board
+                    self.past_bingoboards.append(n_board)
                     break
 
         return bingo
@@ -102,10 +109,11 @@ class BingoBoards(object):
         int
             Board score
         """
-        if self.bingoboard is not None:
+        if len(self.past_bingoboards) > 0:
+            bingoboard = self.past_bingoboards[-1]
             bingoboard = np.where(
-                self.matrices[self.bingoboard] == -1, 0, self.matrices[self.bingoboard]
+                self.matrices[bingoboard] == -1, 0, self.matrices[bingoboard]
             )
             return np.sum(bingoboard)
 
-        return None
+        return -1
