@@ -66,7 +66,7 @@ class Map(object):
     def crossing_lines(self):
         return np.where(self.map > 1)[0].shape[0]
 
-    def mark_vent(self, array):
+    def mark_vent(self, array, diagonals=True):
         """
         Checks if a vent line is horizontal, vertical or diagonal
         and calls the right routines. Arrays look like this:
@@ -80,7 +80,7 @@ class Map(object):
             self.mark_straight_vent(array, horizontal=False)
         elif array[0, 1] == array[1, 1]:
             self.mark_straight_vent(array, horizontal=True)
-        else:
+        elif diagonals:
             self.mark_diagonal_vent(array)
 
     def mark_straight_vent(self, array, horizontal=True):
@@ -112,4 +112,9 @@ class Map(object):
         array : [type]
             [description]
         """
-        pass
+        x_increment = 1 if array[0, 0] < array[1, 0] else -1
+        y_increment = 1 if array[0, 1] < array[1, 1] else -1
+        xrange = np.arange(array[0, 0], array[1, 0] + x_increment, x_increment)
+        yrange = np.arange(array[0, 1], array[1, 1] + y_increment, y_increment)
+
+        self.map[yrange, xrange] += 1

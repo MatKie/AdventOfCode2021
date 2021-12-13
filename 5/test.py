@@ -31,6 +31,18 @@ class TestMap:
         TestMap = Map(x_max, y_max)
 
         for array in ventlines:
-            TestMap.mark_vent(array)
+            TestMap.mark_vent(array, diagonals=False)
 
+        assert TestMap.crossing_lines == example_crossing_lines
+
+    def test_map_all(self):
+        example_crossing_lines = 12
+        ventlines = read_input("exampleinput.txt")
+        x_max, y_max = find_xy_max(ventlines)
+        TestMap = Map(x_max, y_max)
+
+        for array in ventlines:
+            TestMap.mark_vent(array, diagonals=True)
+
+        print(TestMap.map)
         assert TestMap.crossing_lines == example_crossing_lines
