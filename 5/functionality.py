@@ -62,15 +62,24 @@ class Map(object):
         """
         self.map = np.zeros((rows, columns))
 
+    @property
+    def crossing_lines(self):
+        return np.where(self.map > 1)[0].shape[0]
+
     def mark_vent(self, array):
         """
-        Checks if a vent line is horizontal, vertical or diagonal 
-        and calls the right routines.
+        Checks if a vent line is horizontal, vertical or diagonal
+        and calls the right routines. Arrays look like this:
+          x1 x2 x3 ...
+        y1
+        y2
+        y3
+        ...
         """
         if array[0, 0] == array[1, 0]:
-            self.mark_straight_vent(array, horizontal=True)
-        elif array[0, 1] == array[1, 1]:
             self.mark_straight_vent(array, horizontal=False)
+        elif array[0, 1] == array[1, 1]:
+            self.mark_straight_vent(array, horizontal=True)
         else:
             self.mark_diagonal_vent(array)
 
@@ -82,19 +91,17 @@ class Map(object):
         ----------
         array : np.array
             x1 y1
-            x2 y2 
+            x2 y2
         horizontal : bool, optional
             whether or not it's horizontal or vertical, by default True
         """
-
-        # Somethings wrong here!
         if horizontal:
-            xmax, xmin = np.sort(array[:, 1])
-            self.map[array[0, 0], xmin : xmax + 1] += 1
+            xmin, xmax = np.sort(array[:, 0])
+            self.map[array[0, 1], xmin : xmax + 1] += 1
 
         if not horizontal:
-            ymax, ymin = np.sort(array[:, 0])
-            self.map[ymin : ymax + 1, array[1, 1]] += 1
+            ymin, ymax = np.sort(array[:, 1])
+            self.map[ymin : ymax + 1, array[0, 0]] += 1
 
     def mark_diagonal_vent(self, array):
         """
