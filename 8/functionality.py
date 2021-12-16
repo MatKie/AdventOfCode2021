@@ -51,6 +51,18 @@ def count_special_combinations(array):
 
 class Decoder(object):
     def __init__(self, input, output):
+        """
+        This decoder uses the input and output to deduce the wireing 
+        of the panel and can then decode the encoded output to give 
+        back the number.
+
+        Parameters
+        ----------
+        input : list of str
+            ten strings of encoded wireing
+        output : list of str
+            four strings of encoded wireing
+        """
         self.input_encoded = input
         self.output_encoded = output
         self.codes = {}
@@ -58,6 +70,11 @@ class Decoder(object):
         self.inv_codes = None
 
     def decode_easy_codes(self):
+        """
+        Uses encoded wireing to deduce the wireing. A one always has two
+        wires active, a seven has 3 wires, a four has 4 wires and a 8 has
+        7 (all)
+        """
         for item in self.input_encoded + self.output_encoded:
             coded_length = len(item)
             if coded_length in self.codes.keys():
@@ -72,6 +89,21 @@ class Decoder(object):
         self.codes.update(update_dict)
 
     def decode_hard_codes(self):
+        """
+        Uses encoded wireing to deduce the wireing not easily found by 
+        decode_easy_codes().
+
+        the numbers nine, six and zero have 6 active wires:
+            if all active wires are also in the four it must be a nine
+            if thats false, but all active wires are also in a one it 
+            it must be a 0
+            If thats not the case it must be a six.
+
+        the numbers three, five and two have 5 active wires:
+            if it has all the wires also found in a seven it's a three
+            if it has one less wire than a four it's a 5
+            and if it has two less wires than a four it's a 2
+        """
         for item in self.input_encoded + self.output_encoded:
             coded_length = len(item)
             if coded_length in self.codes.keys():
@@ -95,6 +127,15 @@ class Decoder(object):
             self.inv_codes = {v: k for k, v in self.codes.items()}
 
     def decode_output(self):
+        """
+        Decode the message with decoded codes.
+
+        Returns
+        -------
+        int
+            A four digit integer where each wireing combination from 
+            the output is one digit.
+        """
         decoded = ""
         for item in self.output_encoded:
             decoded += str(self.codes.get(frozenset(item)))
