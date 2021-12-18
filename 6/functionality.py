@@ -64,3 +64,32 @@ class Population(object):
         self.population[:-1] = self.population[1:]
         self.population[-1] = new_fish
         self.population[6] += new_fish
+
+
+def descendants_of_descendants(n_days, initial_state):
+    k = 0
+    j = 1
+    n = n_days
+    i = initial_state
+
+    d_of_d = current_descendants(n, i, j, k)
+    fishes = 1
+
+    while len(d_of_d) > 0:
+        for l, ji in enumerate(d_of_d):
+            k += 1
+            new_d_of_d = current_descendants(n - (l * 7), i, ji, k)
+            fishes += sum(d_of_d)
+        d_of_d = new_d_of_d
+
+    return fishes
+
+
+def current_descendants(n, i, j, k):
+    list_of_descendants = []
+    for ji in range(j):
+        descendants = (n - i - 9 * k - 7 * ji) / 7
+        if descendants > 0:
+            list_of_descendants.append(int(np.ceil(descendants)))
+
+    return list_of_descendants
