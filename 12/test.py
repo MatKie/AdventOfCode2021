@@ -1,4 +1,5 @@
-from functionality import read_input, Graph
+from functionality import read_input
+from functionality import Graph
 
 
 class TestInput:
@@ -7,21 +8,10 @@ class TestInput:
 
         assert lower_nodes == set(("c", "b", "end", "start", "d"))
 
-        assert set(graph.get("A")) == set(("c", "b", "end"))
+        assert set(graph.get("A")) == set(("c", "b", "end", "start"))
 
 
 class TestGraph:
-    def test_find_all_paths(self):
-        graph, lower_nodes = read_input("exampleinput.txt")
-
-        ThisGraph = Graph(graph)
-        paths = ThisGraph._find_all_paths_no_loop("start", "end")
-
-        print(paths)
-        assert set(tuple(tuple(path) for path in paths)) == set(
-            (("start", "A", "end"), ("start", "A", "b", "end"), ("start", "b", "end"))
-        )
-
     def test_find_all_paths_lower_nodes(self):
         graph, lower_nodes = read_input("exampleinput.txt")
 
@@ -54,8 +44,32 @@ class TestGraph:
     def test_find_all_paths_lower_nodes_2(self):
         graph, lower_nodes = read_input("exampleinput_2.txt")
 
+        OtherGraph = Graph(graph, lower_nodes)
+
+        other_paths = OtherGraph.find_all_paths_loop()
+        # for item in other_paths:
+        #    print(item)
+        assert len(other_paths) == 19
+
+
+class TestGraph_2:
+    def test_find_all_paths_lower_nodes(self):
+        graph, lower_nodes = read_input("exampleinput.txt")
+
         ThisGraph = Graph(graph, lower_nodes)
-        paths = ThisGraph.find_all_paths_loop()
+        paths = ThisGraph.find_part_2()
 
-        assert len(paths) == 19
+        assert len(paths) == 36
 
+    def test_find_all_paths_lower_nodes_2(self):
+        graph, lower_nodes = read_input("exampleinput_2.txt")
+
+        OtherGraph = Graph(graph, lower_nodes)
+
+        other_paths = OtherGraph.find_part_2()
+        # for item in other_paths:
+        #    print(item)
+        assert len(other_paths) == 103
+
+
+TestGraph_2().test_find_all_paths_lower_nodes()
