@@ -1,0 +1,53 @@
+from os import read
+import pytest
+from functionality import read_input, Polymer, Polymeriser
+
+
+class TestInput:
+    def test_input(self):
+        start, rules = read_input("exampleinput.txt")
+
+        assert start == ["N", "N", "C", "B"]
+        assert len(rules) == 16
+        assert rules.get("BH") == "H"
+
+
+class TestPolymer:
+    def test_input(self):
+        start, rules = read_input("exampleinput.txt")
+
+        ThisPolymer = Polymer(start)
+
+        assert ThisPolymer.pairs[0] == "NN"
+        assert ThisPolymer.pairs[1] == "NC"
+        assert ThisPolymer.pairs[2] == "CB"
+        assert ThisPolymer.string_representation == "NNCB"
+
+    def test_polymer_count(self):
+        start, rules = read_input("exampleinput.txt")
+        ThisPolymer = Polymer(start)
+
+        ThisPolymeriser = Polymeriser(rules)
+        for _ in range(10):
+            ThisPolymer = ThisPolymeriser.polymerise(ThisPolymer)
+
+        assert ThisPolymer.count_items() == 1588
+
+
+class TestPolymeriser:
+    def test_polymerise(self):
+        start, rules = read_input("exampleinput.txt")
+        ThisPolymer = Polymer(start)
+
+        ThisPolymeriser = Polymeriser(rules)
+        ThisPolymer = ThisPolymeriser.polymerise(ThisPolymer)
+
+        assert ThisPolymer.string_representation == "NCNBCHB"
+        ThisPolymer = ThisPolymeriser.polymerise(ThisPolymer)
+        ThisPolymer = ThisPolymeriser.polymerise(ThisPolymer)
+        ThisPolymer = ThisPolymeriser.polymerise(ThisPolymer)
+        assert (
+            ThisPolymer.string_representation
+            == "NBBNBNBBCCNBCNCCNBBNBBNBBBNBBNBBCBHCBHHNHCBBCBHCB"
+        )
+
