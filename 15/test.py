@@ -57,6 +57,14 @@ class TestPathfinder(object):
 
         assert total_cost == 40
 
+    def test_algo_alt(self):
+        A = read_input("exampleinput2.txt")
+        ThisPath = PathFinder(A)
+
+        total_cost = ThisPath.dijkstra_algo()
+
+        assert total_cost == 8
+
     def test_algo2(self):
         A = read_input("exampleinput.txt")
         A = transform_input(A)
@@ -65,3 +73,4 @@ class TestPathfinder(object):
         total_cost = ThisPath.dijkstra_algo()
 
         assert total_cost == 315
+

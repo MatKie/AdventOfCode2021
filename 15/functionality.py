@@ -85,7 +85,8 @@ class PathFinder(object):
         found_destination = False
         max_iter = max((self.n_rows, self.n_cols)) ** 2
         iteration = 0
-        while not found_destination or iteration > max_iter + 1:
+        eligible_nodes = {origin: 0}
+        while not found_destination and iteration < max_iter:
             iteration += 1
             if not iteration % 500:
                 print("iteration {:d}...".format(iteration))
@@ -97,23 +98,22 @@ class PathFinder(object):
                     this_distance = self.costs[neighbour] + current_cost
                     if distance > this_distance:
                         nodes[neighbour][1] = this_distance
-            # mark as visited
+                        eligible_nodes.update({neighbour: this_distance})
+            # mark as visited, remove from eligible nodes
             nodes[current_node][0] = True
-            # find next node to visit (smallest distance, not visited)
-            next_node = min(
-                nodes, key=lambda key: np.inf if nodes[key][0] else nodes[key][1]
-            )
+            _ = eligible_nodes.pop(current_node)
 
             # Abort if we found destination or only inf is left (should not happen here)
             # If we don't break we start over with next node
-            if current_node == self.destination:
+            if current_node == self.destination or len(eligible_nodes) == 0:
                 found_destination = True
-            elif nodes[next_node][1] == np.inf:
-                found_destination = True
-            else:
-                current_node = next_node
+                break
 
-        return nodes[self.destination][-1]
+            # find next node to visit (smallest distance, not visited)
+            next_node = min(eligible_nodes, key=eligible_nodes.get)
+            current_node = next_node
+
+        return int(nodes[self.destination][-1])
 
     def get_initial_nodes(self):
         """
@@ -157,3 +157,4 @@ class PathFinder(object):
                 neighbours.append(tuple(deviation))
 
         return neighbours
+
