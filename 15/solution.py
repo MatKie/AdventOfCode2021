@@ -18,4 +18,5 @@ total_cost = ThisPath.dijkstra_algo()
 
 print("***Part 1***")
 print(total_cost)
-print("Total Cost: {:d}".format(total_cost))
+print("Total Cost: {:f}".format(total_cost))
+# 2963
