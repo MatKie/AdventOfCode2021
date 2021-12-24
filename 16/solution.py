@@ -9,8 +9,9 @@ Decoder.decode_hex()
 Decoder.process_binary()
 
 print("***Part 1***")
-print("***Sum of version is: {:d}".format(int(sum(Decoder.versions))))
+print("Sum of version is: {:d}".format(int(sum(Decoder.versions))))
 
-print(Decoder.versions, Decoder.types, Decoder.literals)
-print(len(Decoder.versions), len(Decoder.types), len(Decoder.literals))
+
+print("***Part 2***")
+print("Final value is: {:d}".format(int(Decoder.value)))
 

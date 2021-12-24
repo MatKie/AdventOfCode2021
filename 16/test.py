@@ -119,21 +119,21 @@ class TestPart2(object):
         Decoder = Coder(hex)
         Decoder.decode_hex()
         Decoder.process_binary()
-        assert Decoder.value == 15
+        assert Decoder.value == 1
 
     def test_combination_6(self):
         hex = "F600BC2D8F"
         Decoder = Coder(hex)
         Decoder.decode_hex()
         Decoder.process_binary()
-        assert Decoder.value == 15
+        assert Decoder.value == 0
 
     def test_combination_7(self):
         hex = "9C005AC2F8F0"
         Decoder = Coder(hex)
         Decoder.decode_hex()
         Decoder.process_binary()
-        assert Decoder.value == 15
+        assert Decoder.value == 0
 
     def test_combination_8(self):
         hex = "9C0141080250320F1802104A08"
@@ -143,4 +143,5 @@ class TestPart2(object):
         assert Decoder.value == 1
 
 
-TestPart2().test_combination_8()
+TestDecoder().test_combination_3()
+
