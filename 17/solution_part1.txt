@@ -1,0 +1,43 @@
+This part can be done analytically.
+The position in x and y direction is initially like this (p = (x,y))
+
+p = p0 , p0+p0-1,  p0 + p0-1 + p0-2 ...
+Realising that this:
+p(t=tmax) = sum_t=0^Tmax-1 (p0-t) = p0 (p0+1)/2
+the expression for arbitrary t we can get from subtracting 
+the sum for p(t=t) = (p0-t)(p0-t+1)/2
+
+p(t) =p0 (p0+1)/2 - (p0-t)(p0-t+1)/2 (1)
+
+for x this is true for t <= x0, where x(t) = x(t=x0) for t > x0
+ 
+for y this is ture for all t. 
+
+We realise that the trajectory is symmetrical, as soon as the dead point / 
+maximum of the trajectory is overcome we go down by 1, 2, 3 ... . Therefore
+we will be at point zero after twice the time it took to get to the high point:
+
+dy/dt = y0 - t + 1/2 --> t_max = y0 + 1/2 --> t_zero = 2y0 + 1 
+
+The next step after the zero crossing will take it to:
+y0 - t_zero = -y0 - 1. (2)
+
+(somehow it does not work wity y - t-zero -1.. Probably because of some
+index mixup higher up.)
+
+Since equation (1) is monotonically increasing in p0, y_max is maximised
+by maximal y0. If we therefore make it in one step from the zero crossing
+to the most negative value in the target area, we will have maximised y_max.
+
+-y0 - 1 = ymin = -68 --> y0 = 67 --> t_min_y = t_zero + 1 = 134 + 1 + 1 = 136
+
+y(t=136) = -68
+y(t=67/68 (t_zero)) = 67*67 = 2278
+
+To check if x is feasible: 
+x(tmax) = x0(x0+1)/2  
+xmax >= x(tmax) >= xmin
+
+--> x0^2 + x0 - c = 0 needs to have an integer solution (for c) where
+                       c is inbetween xmin and xmax. This is the case 
+                       here (23).
