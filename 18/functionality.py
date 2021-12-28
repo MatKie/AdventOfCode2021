@@ -2,47 +2,50 @@ from numpy import ceil, floor
 import re
 
 
+def add(a, b):
+    """
+    Add two snail numbers a+b = [a,b]
+
+    Parameters
+    ----------
+    a : str
+    b : str
+
+    Returns
+    -------
+    str
+    """
+    c = "[{:s},{:s}]".format(a, b)
+    return c
+
+
 def process_number(number, do_split=True, do_explode=True):
-    level = 0
-    new_number = ""
-    skip = False
-    for i, char in enumerate(number):
-        if skip:
-            skip = False
-            continue
-        if char == "[":
-            level += 1
-            new_number += char
-            continue
-        elif char == "]":
-            level -= 1
-            new_number += char
-            continue
-        elif char == ",":
-            new_number += char
-            continue
+    """
+    High level function to check when to do what. 
+
+    Parameters
+    ----------
+    number : str
+        snail number
+    do_split : bool, optional
+        for testing purposes, by default True
+    do_explode : bool, optional
+        for testing purposes, by default True
+
+    Returns
+    -------
+    str
+        snail number
+    """
+    exploded = explode(number)
+    if exploded != number and do_explode:
+        return process_number(exploded)
+    else:
+        splitd = split(number)
+        if splitd != number and do_split:
+            return process_number(splitd)
         else:
-            if number[i + 1] in ["[", "]", ","]:
-                this_number = int(char)
-            else:
-                skip = True
-                this_number = int(number[i : i + 2])
-
-        if level > 4 and do_explode:
-            new_number = explode(number)
-            level -= 1
-            return process_number(new_number, do_split=do_split, do_explode=do_explode)
-            # explode next pair
-
-        if this_number > 10 and do_split:
-            left, right = floor(this_number / 2.0), ceil(this_number / 2.0)
-            new_number += "[{:d},{:d}]".format(int(left), int(right))
-            new_number += number[i + 2 :]
-            return process_number(new_number, do_split=do_split, do_explode=do_explode)
-            # split this number
-
-        new_number += str(this_number)
-    return new_number
+            return splitd
 
 
 def explode(data):
@@ -50,21 +53,28 @@ def explode(data):
     Explode the string using regex. Search all regular number pairs [d,d],
     check the level by counting opening/closing brackets. 
     If not at least level four, look for the next pair.
-    IF a level 5 pair is found
+    IF a level 5 pair is found explode it: 
+        break string in left and right from pair
+        find next number (if there is one)
+        add left/right number to next number
+        reconstruct string with that number there -- brackets 
+        are taken care of by breaking string from pair
+        add left and right with a zero inbetween 
 
     Parameters
     ----------
-    data : [type]
-        [description]
+    data : str
+        snail number in string representation
 
     Returns
     -------
-    [type]
-        [description]
+    str
+        snail number in string representation
     """
     offset = 0
     for p in re.findall("\[\d+,\d+\]", data):
-        # Gives a regex search object with span and start
+        # Gives a regex search object with span and start. I think
+        # gets rid of the brackets as well.
         pair = re.search(re.escape(p), data[offset:])
         left_brackets = data[: pair.start() + offset].count("[")
         right_brackets = data[: pair.start() + offset].count("]")
@@ -74,69 +84,78 @@ def explode(data):
             # flip left side around so we get the first num going backwards
             left = data[: pair.start() + offset][::-1]
             right = data[pair.end() + offset :]
-            # look left
+            # look left for first number -- if there's none do nothing
             search_left = re.search("\d+", left)
             if search_left:
-                # need to find the rightmost match not the first
+                # need to find the rightmost match not the first (first since
+                # we reversed the string)
                 amt = int(left[search_left.start() : search_left.end()][::-1]) + int(x)
+                # Write string backwards -- leave out bit betwen start() and end()
                 left = f"{left[:search_left.start()]}{str(amt)[::-1]}{left[search_left.end():]}"
-            # look right
+            # look right for first number -- if there's none do nothing
             search_right = re.search("\d+", right)
             if search_right:
+                # Same procedure but string wasn't flipped
                 amt = int(right[search_right.start() : search_right.end()]) + int(y)
                 right = (
                     f"{right[:search_right.start()]}{amt}{right[search_right.end():]}"
                 )
+            # One of the ends will always be a zero, since snailfish numberes
+            # are pairs and therefore one won't have a direct neighbour.
             data = f"{left[::-1]}0{right}"
             break
         else:
-            # offset = pair.end() + offset
+            # I don't know what it's here for but it makes some tests pass
+            offset = pair.end() + offset
             pass
     return data
 
 
-"""
-def explode(i, number, this_number):
-    new_number = ""
-    # Find left number
-    for j, char in enumerate(number[i - 1 :: -1]):
-        if j == 1 and char in [",", "]", "["]:
-            new_number = number[: i - j - 1] + str(0)
-        if char not in [",", "]", "["]:
-            that_number = int(char)
-            that_number = this_number + that_number
-            new_number = number[: i - j - 1] + str(that_number) + number[i - j : i - 1]
-            break
+def split(data):
+    """
+    Split numbers > 9
 
-    # if no left number found copy whole string up to explode
-    if char == "[":
-        new_number = number[: i - 1]
+    Parameters
+    ----------
+    data : str
+        snailnumber
 
-    # get right number of pair
-    off = 2
-    if this_number > 9:
-        off += 1
-    if number[i + off + 1] in ["]", "[", ","]:
-        right_pair_number = int(number[i + off])
-    else:
-        right_pair_number = int(number[i + off : i + off + 2])
-        off += 1
+    Returns
+    -------
+    str
+        snailnumber
+    """
+    dd = re.search("\d\d", data)
+    if dd:
+        left = data[: dd.start()]
+        right = data[dd.end() :]
+        left_digit = int(floor(int(dd.group()) / 2))
+        right_digit = int(ceil(int(dd.group()) / 2))
+        data = f"{left}[{left_digit},{right_digit}]{right}"
+    return data
 
-    for j, char in enumerate(number[i + off + 1 :]):
-        if char not in [",", "]", "["]:
-            if number[i + off + j + 2] in [",", "]", "["]:
-                right_number = int(char)
-            else:
-                right_number = int(number[i + off + j + 1 : i + off + j + 3])
-            right_number += right_pair_number
-            new_number += number[i + off : i + off + j + 1]
-            new_number += str(right_number)
-            new_number += number[i + off + j + 2 :]
-            break
 
-    if char == "]":
-        new_number += number[i + off :]
+def magnitude(data):
+    """
+    Calculates the magnitude of a snail number. It goes over all
+    pairs of [d1,d2] and reduces them to 3*d1 + 2*d2, which will reduce
+    the nesting and create a new pair to be evaluated until there is 
+    only one pair (the final magnitude)
 
-    return new_number
-"""
+    Parameters
+    ----------
+    data : str
+        snailnumber
 
+    Returns
+    -------
+    int
+        magnitude
+    """
+    while data.count(",") > 1:
+        for p in re.findall("\[\d+,\d+\]", data):
+            pair = re.search(re.escape(p), data)
+            left_digit, right_digit = p[1:-1].split(",")
+            data = f"{data[: pair.start()]}{int(left_digit) * 3 + int(right_digit) * 2}{data[pair.end() :]}"
+    left_digit, right_digit = data[1:-1].split(",")
+    return int(left_digit) * 3 + int(right_digit) * 2
