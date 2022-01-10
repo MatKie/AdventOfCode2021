@@ -5,6 +5,10 @@ from functools import reduce
 
 
 def deterministic_dice(start_1, start_2):
+    '''
+    Plays a game of deterministic dice, given the starting
+    position on the board
+    '''
     Die = DeterministicDie()
     rolls = Die.roll()
     Player_1 = Player(start_1)
@@ -21,6 +25,10 @@ def deterministic_dice(start_1, start_2):
 
 class DeterministicDie(object):
     def __init__(self):
+        '''
+        A deterministic dice increasing it's result 
+        by one at every roll, keeping track of how often it rolled.
+        '''
         self.rolls = 0
 
     def roll(self):
@@ -34,6 +42,9 @@ class DeterministicDie(object):
 
 class Player(object):
     def __init__(self, starting_position, winning_score=1000):
+        '''
+        Player for deterministic dice, main method is the move method.
+        '''
         self.position = starting_position
         self.winning_score = winning_score
         self.score = 0
@@ -52,71 +63,92 @@ class Player(object):
         return False
 
 
+class DiracPlayer(object):
+    def __init__(self, starting_position, winning_score=21):
+        '''
+        Dirac Dice player, mostly to keep track of past scores and it's winning 
+        universes.
+        '''
+        self.positions = [starting_position]
+        self.scores = [0]
+        self.winning_universes = []
+        self.winning_score = winning_score
+
+    def __bool__(self):
+        if sum(self.scores) >= self.winning_score:
+            return True
+
+        return False
+
+
 class DiracDice(object):
-    def __init__(self, starting_position):
-        self.starting_position = starting_position
+    def __init__(self, starting_position_1, starting_position_2):
+        self.starting_position = starting_position_1
+        self.Player_1 = DiracPlayer(starting_position_1, 21)
+        self.Player_2 = DiracPlayer(starting_position_2, 21)
 
     def find_all_universes(self):
         """DFS wrapper"""
-        return self.depth_first_search(self.starting_position)
+        return self.depth_first_search(self.Player_1, self.Player_2)
 
     @staticmethod
-    def depth_first_search(
-        position,
-        score=0,
-        universes=[],
-        universes_increment=1,
-        min_score=21,
-        winning_universes=[],
-    ):
+    def depth_first_search(Player1, Player2, universes=[], universes_increment=1):
         """
         DFS algorithm: Explore one path till you find end, then backtrack
         until there is a node with another possible way to go except 
         the backtracked way.
         Parameters
         ----------
-        graph : dict
-            bidirectional graph
-        start : str
-            current location in the graph
-        end : str
-            end node
-        path : list, optional
-            current path, by default []
-        paths : list, optional
-            all paths found so far, by default []
+        Player1, Player2 : DiracPlayer objects
+        universes : list
+            List of how many universes the current path exists in (needs be 
+            multiplied to yield this number).
+        univereses_increment : int
+            Keeps track of how many universes the last set of three
+            dice rolls opened up. 
         Returns
         -------
-        list (paths)
-            all paths found
+        list of int 
+            List of how many universes each player one in (needs be summed up)
         """
         universes.append(universes_increment)
-        if score >= min_score:
-            winning_universes.append(reduce(mul, universes, 1))
-            # winning_universes.append(np.prod(universes))
-
-            # paths.append(path)
+        if Player1:
+            Player1.winning_universes.append(reduce(mul, universes, 1))
+        elif Player2:
+            Player2.winning_universes.append(reduce(mul, universes, 1))
         else:
-            # if there was start == target we backtrack (pop) items
-            # from the path, until we reach a node with vertices
-            # leading down other paths.
-            # dead ends will be automatically popped as there are no
-            # nodes at that graph[start].
             rolls = DiracDice.dice_roll()
             for position_increment, universes_increment in rolls:
-                new_position = DiracDice.calc_position(position, position_increment)
-                new_score = score + new_position
+                # This is not necessary as we don't really need to keep
+                # track of our Players, just switch them at each 
+                # recursive call. However it was easier for me to figure
+                # out that way.
+                if (len(universes) % 2) == 0:
+                    new_position = DiracDice.calc_position(
+                        Player2.positions[-1], position_increment
+                    )
+                    Player2.positions.append(new_position)
+                    Player2.scores.append(new_position)
+                    Player1.scores.append(0)
+                    Player1.positions.append(Player1.positions[-1])
+                else:
+                    new_position = DiracDice.calc_position(
+                        Player1.positions[-1], position_increment
+                    )
+                    Player1.positions.append(new_position)
+                    Player1.scores.append(new_position)
+                    Player2.scores.append(0)
+                    Player2.positions.append(Player2.positions[-1])
                 DiracDice.depth_first_search(
-                    new_position,
-                    new_score,
-                    universes,
-                    universes_increment,
-                    min_score,
-                    winning_universes,
+                    Player1, Player2, universes, universes_increment
                 )
 
+        # BACKTRACK
         universes.pop()
-        return winning_universes
+        for Player in [Player1, Player2]:
+            Player.scores.pop()
+            Player.positions.pop()
+        return Player1.winning_universes, Player2.winning_universes
 
     @staticmethod
     def dice_roll():
