@@ -1,4 +1,17 @@
 def read_input(filename):
+    """
+    Read input into blocks/instructions
+
+    Parameters
+    ----------
+    filename : str
+        path to filename
+
+    Returns
+    -------
+    block
+        [state, (xmin, xmax), (ymin, ymax), (zmin, zmax)]
+    """
     instr = []
     with open(filename, "r") as f:
         for line in f:
@@ -12,6 +25,21 @@ def read_input(filename):
 
 
 def process_instruction(A, instruction):
+    """
+    Brute force turn off/on elements in a matrix
+
+    Parameters
+    ----------
+    A : np.ndarray
+        block matrix
+    instruction : block [state, (xmin, xmax)]
+        a block to turn on or off dep. on state
+
+    Returns
+    -------
+    np.ndarray
+        matrix after processing an instruction
+    """
     state = False
     if instruction[0] == "on":
         state = True
@@ -28,24 +56,43 @@ def process_instruction(A, instruction):
 
 
 def check_overlap(block, new_block):
+    """
+    Checks if the cubes overlap by comparing their  boudns
+    """
     # Need to overlap / be enclosed in all three dimensions (need be three)
     overlap = 0
-    enclosed = 0
     for coords, new_coords in zip(block[1:], new_block[1:]):
         c1, c2 = coords
         nc1, nc2 = new_coords
-        if nc1 >= c1 and nc2 <= c2:
-            enclosed += 1
-            overlap += 1
-        elif (nc1 >= c1 and nc1 <= c2) or (nc2 <= c2 and nc2 >= c1):
+        if (
+            (nc1 >= c1 and nc1 <= c2)
+            or (nc2 <= c2 and nc2 >= c1)
+            or (nc1 < c1 and nc2 > c2)
+            or (nc1 >= c1 and nc2 <= c2)
+        ):
             overlap += 1
 
-    return overlap, enclosed
+    return overlap
 
 
 def split(block, new_block):
+    """
+    Split a new_block into parts not overlapping with block
+
+    Parameters
+    ----------
+    block : a block ([state, (xmin,xmax), ...])
+        Intended to stay complete
+    new_block : a different block ([state, (xmin,xmax), ...])
+        will be the split into the blocks not overlapping with block
+
+    Returns
+    -------
+    a block ([state, (xmin, xmax)...])
+        Up to six blocks which result from intersecting new_block with block.
+    """
     split_blocks = []
-    # Only called on overlapping blocks
+    # Only called on overlapping blocks, no need to test
     xmin, xmax = block[1]
     ymin, ymax = block[2]
     zmin, zmax = block[3]
@@ -55,6 +102,9 @@ def split(block, new_block):
     nymin, nymax = new_block[2]
     nzmin, nzmax = new_block[3]
 
+    # The -1 is necessary, to have non intersecting blocks after splitting.
+    # A loop is totaly possible but I wanted to have it easy debugging.. also
+    # it was hard to wrap my head around it
     if nxmin < xmin:
         split_blocks.append(
             [new_block_state, (nxmin, xmin - 1), (nymin, nymax), (nzmin, nzmax)]
@@ -92,24 +142,44 @@ def split(block, new_block):
 
 
 def merge(blocks, new_blocks):
+    """
+    Merge the first member of new_blocks into blocks. If an overlap 
+    is noticed, new_block will be split at the overlap and the function
+    called again with the split pieces. 
+    If new_block is an off block, the block overlapping will be split
+    and we call the function again with the same new_blocks but 
+    diff. blocks.
+
+    Parameters
+    ----------
+    blocks : list of blocks/instructions
+        see read_input
+    new_blocks : list of blocks/instructions
+        see read_input
+
+    Returns
+    -------
+    blocks, new_blocks
+        updated block list, see description
+    """
     for i_nb, bn in enumerate(new_blocks):
         for j_b, b in enumerate(blocks):
-            overlap, enclosed = check_overlap(b, bn)
+            overlap = check_overlap(b, bn)
             new_state = bn[0]
             if overlap == 3 and new_state == "off":
                 # Split original block in (up to) six parts
                 split_blocks = split(bn, b)
                 return (
                     blocks[:j_b] + split_blocks + blocks[j_b + 1 :],
-                    new_blocks[:i_nb] + new_blocks[i_nb + 1 :],
+                    new_blocks,
                 )
             if overlap == 3 and new_state == "on":
                 split_blocks = split(b, bn)
                 return blocks, new_blocks[:i_nb] + split_blocks + new_blocks[i_nb + 1 :]
-            if overlap < 3 and new_state == "off":
-                return blocks, new_blocks[:i_nb] + new_blocks[i_nb + 1 :]
-            if overlap < 3 and new_state == "on":
-                return blocks + [bn], new_blocks[:i_nb] + new_blocks[i_nb + 1 :]
+
+        if new_state == "off":
+            return blocks, new_blocks[:i_nb] + new_blocks[i_nb + 1 :]
+        return blocks + [bn], new_blocks[:i_nb] + new_blocks[i_nb + 1 :]
 
     return blocks, new_blocks
 

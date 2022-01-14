@@ -64,5 +64,38 @@ class TestPart2:
         print(count_blocks(blocks) / 2758514936282235)
         assert count_blocks(blocks) == 2758514936282235
 
+    def test_part_3(self):
+        new_blocks = read_input("input.txt")
+        blocks = [new_blocks[0]]
+        new_blocks = new_blocks[1:]
 
-# TestPart2().test_part_2()
+        i = 0
+        while len(new_blocks) > 0:
+            blocks, new_blocks = merge(blocks, new_blocks)
+            i += 1
+
+        assert count_blocks(blocks) == 1234650223944734
+
+    def test_with_comparison(self):
+        new_blocks = read_input("input.txt")
+        new_blocks = new_blocks[:20]
+        blocks = [new_blocks[0]]
+        new_blocks = new_blocks[1:]
+        A = np.zeros((101, 101, 101), dtype=bool)
+        A = process_instruction(A, blocks[0])
+
+        for i, new_block in enumerate(new_blocks):
+
+            method_1 = np.where(A == True)[0].shape[0]
+            method_2 = count_blocks(blocks)
+            print(method_1, method_2)
+
+            this_new_blocks = [new_block]
+            while len(this_new_blocks) > 0:
+                blocks, this_new_blocks = merge(blocks, this_new_blocks)
+            A = process_instruction(A, new_block)
+
+        assert method_1 == method_2
+
+
+# TestPart2().test_with_comparison()
