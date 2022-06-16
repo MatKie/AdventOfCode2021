@@ -5,6 +5,7 @@
 # be much quicker to calculate. Should be a 13/14 increase for the lowest
 # digits in the SN and then increasingly inefficient as it goes to the higher
 # digits in the SN. Worth it?
+import copy
 
 # Might run into a space problem, won't we.
 class ALU(object):
@@ -73,39 +74,51 @@ def find_highest_monad(instructions):
     while not valid:
         sn -= 1
         string_sn = str(sn)
-        if not "0" in string_sn:
-            for i in range(14, 0, -1):
-                MonadAlu = memoization.get(string_sn[:i], None)
-            # How to store non-finished ALUs?
-            MonadAlu = monad(string_sn, instructions, i, MonadAlu)
-            valid = bool(MonadAlu.states.get("z"))
-            memoization.update({string_sn: MonadAlu})
-        if sn % 1 == 0:
+        if "0" not in string_sn:
+            MonadAlu, memoization = do_instructions(
+                memoization, string_sn, instructions
+            )
+
+            valid = not bool(MonadAlu.states.get("z"))
+            # How to store non-finished ALUs? Recursion?
+        if sn % 1e4 == 0:
             print(sn)
     return sn
 
 
-def monad(serial_number, instructions, start=0, MonadAlu=None):
-    """
-    MOdel Number Automatic Detector program
-    
-    takes a serial number and a set of instructions. Inputs the serial
-    number digits at the respective time during the instructions and feeds
-    this to the ALU
-    """
+def do_instructions(memoization, string_sn, instructions):
+    for i in range(14, 0, -1):
+        MonadAlu = memoization.get(string_sn[:i], None)
+        if MonadAlu is not None:
+            if i == 14:
+                return MonadAlu, memoization
+            memoization.update(
+                {
+                    string_sn[: i + 1]: get_this_alu(
+                        copy.deepcopy(MonadAlu), instructions, i, string_sn[i]
+                    )
+                }
+            )
+            return do_instructions(memoization, string_sn, instructions)
+        elif i == 1:
+            memoization.update(
+                {string_sn[:i]: get_this_alu(MonadAlu, instructions, 0, string_sn[0])}
+            )
+            return do_instructions(memoization, string_sn, instructions)
+
+
+def get_this_alu(MonadAlu, instructions, start, sn_i):
     if MonadAlu is None:
         MonadAlu = ALU()
-    iter_SN = iter(serial_number)
-    j = 0
+    j = -1
+    if not MonadAlu.valid:
+        return MonadAlu
     for instr in instructions:
         instr = instr.split()
         if len(instr) < 3:
-            instr.append(next(iter_SN))
+            instr.append(sn_i)
             j += 1
-        if j >= start:
+        if j == start:
             MonadAlu.do_instruction(*instr)
-        if not MonadAlu.valid:
-            break
 
     return MonadAlu
-
