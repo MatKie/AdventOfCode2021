@@ -1,6 +1,6 @@
 from dis import Instruction
 import pytest
-from functionality import read_instructions, monad, find_highest_monad, ALU
+from functionality import do_instructions, read_instructions, ALU
 
 
 class TestInput:
@@ -64,6 +64,17 @@ class TestMonad:
     def test_example_1(self):
         instructions = read_instructions("exampleinput_2.txt")
 
-        assert monad("39", instructions) == True
-        assert monad("38", instructions) == False
+        alu, memo = do_instructions({}, "39", instructions)
+        assert alu.states.get("z") == 1
+        alu, memo = do_instructions({}, "38", instructions)
+        assert alu.states.get("z") != 1
 
+    def test_example_2(self):
+        instructions = read_instructions("exampleinput_3.txt")
+
+        alu, memo = do_instructions({}, "7", instructions)
+        print(alu.states)
+        assert alu.states.get("w") == 0
+        assert alu.states.get("x") == 1
+        assert alu.states.get("y") == 1
+        assert alu.states.get("z") == 1
