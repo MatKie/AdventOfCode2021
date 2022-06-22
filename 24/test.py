@@ -78,3 +78,15 @@ class TestMonad:
         assert alu.states.get("x") == 1
         assert alu.states.get("y") == 1
         assert alu.states.get("z") == 1
+
+
+class TestProduction:
+    def test_last_instruction(self):
+        # This yields zero for the last set of instructions
+        _instructions = read_instructions("input.txt")
+        instructions = ["inp z 9"] + _instructions[-18:]
+
+        Alu, _ = do_instructions({}, "7", instructions)
+
+        assert False == True
+
