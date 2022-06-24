@@ -1,4 +1,3 @@
-from dis import Instruction
 from functionality import find_highest_monad, read_instructions
 
 instructions = read_instructions("input.txt")

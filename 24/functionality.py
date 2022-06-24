@@ -68,57 +68,36 @@ def read_instructions(filename):
 
 
 def find_highest_monad(instructions):
-    valid = False
-    sn = 100000000000000
-    memoization = {}
-    while not valid:
-        sn -= 1
-        string_sn = str(sn)
-        if "0" not in string_sn:
-            MonadAlu, memoization = do_instructions(
-                memoization, string_sn, instructions
-            )
+    desired_z = 0
+    instruction_counter = 13
+    sn = ""
+    for instruction_counter in range(13, -1, -1):
+        for w in range(9, 0, -1):
+            for z_prior in range(260000):
+                Alu = ALU()
+                current_instructions = ["inp z {:d}".format(z_prior)]
+                current_instructions.extend(
+                    instructions[
+                        instruction_counter * 18 : (instruction_counter + 1) * 18
+                    ]
+                )
+                Alu = solve_alu(Alu, current_instructions, w)
+                if Alu.states.get("z") == desired_z and Alu.valid:
+                    break
+            if Alu.states.get("z") == desired_z and Alu.valid:
+                desired_z = z_prior
+                sn = str(w) + sn
+                break
+        print(sn, desired_z)
 
-            valid = not bool(MonadAlu.states.get("z"))
-            # How to store non-finished ALUs? Recursion?
-        if sn % 1e4 == 0:
-            print(sn)
     return sn
 
 
-def do_instructions(memoization, string_sn, instructions):
-    for i in range(14, 0, -1):
-        MonadAlu = memoization.get(string_sn[:i], None)
-        if MonadAlu is not None:
-            if i == 14:
-                return MonadAlu, memoization
-            memoization.update(
-                {
-                    string_sn[: i + 1]: get_this_alu(
-                        copy.deepcopy(MonadAlu), instructions, i, string_sn[i]
-                    )
-                }
-            )
-            return do_instructions(memoization, string_sn, instructions)
-        elif i == 1:
-            memoization.update(
-                {string_sn[:i]: get_this_alu(MonadAlu, instructions, 0, string_sn[0])}
-            )
-            return do_instructions(memoization, string_sn, instructions)
-
-
-def get_this_alu(MonadAlu, instructions, start, sn_i):
-    if MonadAlu is None:
-        MonadAlu = ALU()
-    j = -1
-    if not MonadAlu.valid:
-        return MonadAlu
+def solve_alu(MonadAlu, instructions, sn_i):
     for instr in instructions:
         instr = instr.split()
         if len(instr) < 3:
             instr.append(sn_i)
-            j += 1
-        if j == start:
-            MonadAlu.do_instruction(*instr)
+        MonadAlu.do_instruction(*instr)
 
     return MonadAlu
