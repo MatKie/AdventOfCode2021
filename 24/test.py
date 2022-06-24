@@ -1,6 +1,6 @@
 from dis import Instruction
 import pytest
-from functionality import do_instructions, read_instructions, ALU
+from functionality import do_instructions, get_this_alu, read_instructions, ALU
 
 
 class TestInput:
@@ -86,7 +86,7 @@ class TestProduction:
         _instructions = read_instructions("input.txt")
         instructions = ["inp z 9"] + _instructions[-18:]
 
-        Alu, _ = do_instructions({}, "7", instructions)
+        Alu = get_this_alu(None, instructions, 1, "7")
 
-        assert False == True
+        assert Alu.states.get("z") == 0
 
