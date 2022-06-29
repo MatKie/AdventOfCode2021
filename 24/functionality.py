@@ -51,12 +51,14 @@ class ALU(object):
             return val1 // val2
         else:
             self.valid = False
+            return -1
 
     def _mod(self, val1, val2):
         if val1 >= 0 and val2 > 0:
             return val1 % val2
         else:
             self.valid = False
+            return -1
 
 
 def read_instructions(filename):
@@ -68,29 +70,43 @@ def read_instructions(filename):
 
 
 def find_highest_monad(instructions):
-    desired_z = 0
-    instruction_counter = 13
+    current_z = 0
     sn = ""
-    for instruction_counter in range(13, -1, -1):
-        for w in range(9, 0, -1):
-            for z_prior in range(260000):
-                Alu = ALU()
-                current_instructions = ["inp z {:d}".format(z_prior)]
-                current_instructions.extend(
-                    instructions[
-                        instruction_counter * 18 : (instruction_counter + 1) * 18
-                    ]
-                )
-                Alu = solve_alu(Alu, current_instructions, w)
-                if Alu.states.get("z") == desired_z and Alu.valid:
-                    break
-            if Alu.states.get("z") == desired_z and Alu.valid:
-                desired_z = z_prior
-                sn = str(w) + sn
-                break
-        print(sn, desired_z)
+    graph = {}
+    graph = depth_first_search(graph, sn, current_z, instructions)
 
-    return sn
+    full_length_sns = [
+        key for key, value in graph.items() if len(key) == 14 if value == 0
+    ]
+
+    return max(full_length_sns)
+
+
+def depth_first_search(graph, node, desired_z, instructions):
+    graph.update({node: desired_z})
+    for solution, solution_z in find_solutions(node, desired_z, instructions):
+        if len(node) == 14 and desired_z == 0:
+            print(node, desired_z)
+            return graph
+        elif graph.get(solution, None) != desired_z:
+            graph = depth_first_search(graph, solution, solution_z, instructions)
+
+    return graph
+
+
+def find_solutions(current_node, desired_z, instructions):
+    instruction_counter = 13 - len(current_node)
+    current_instructions = instructions[
+        instruction_counter * 18 : (instruction_counter + 1) * 18
+    ]
+    for w in range(9, 0, -1):
+        for z_prior in range(300, -1, -1):
+            Alu = ALU()
+            extended_instructions = ["inp z {:d}".format(z_prior)]
+            extended_instructions.extend(current_instructions)
+            Alu = solve_alu(Alu, extended_instructions, w)
+            if Alu.states.get("z") == desired_z and Alu.valid:
+                yield str(w) + current_node, z_prior
 
 
 def solve_alu(MonadAlu, instructions, sn_i):
