@@ -71,3 +71,37 @@ class TestProduction:
 
         assert Alu.states.get("z") == 0
 
+
+class TestFirstInstructions:
+    def test_one_two(self):
+        _instructions = read_instructions("input.txt")
+        instructions = _instructions[:18]
+
+        Alu = ALU()
+        for k, i in enumerate([9, 9, 9, 9, 1, 9, 9, 3, 8, 1, 7, 9, 5, 9]):
+            # Alu = solve_alu(Alu, instructions, "{:d}".format(1))
+            instructions = _instructions[k * 18 : (k + 1) * 18]
+            # print(Alu.states)
+            Alu = solve_alu(Alu, instructions, "{:d}".format(i))
+
+            print(k + 1, Alu.states, Alu.valid)
+
+        assert 0 == 1
+
+    def test_all(self):
+        _instructions = read_instructions("input.txt")
+        instructions = _instructions[:18]
+
+        Alu = ALU()
+        for k, i in enumerate([8, 8, 8, 9, 1, 9, 9, 3, 8, 1, 7, 9, 5, 9]):
+            # Alu = solve_alu(Alu, instructions, "{:d}".format(1))
+            instructions = _instructions[k * 18 : (k + 1) * 18]
+            # print(Alu.states)
+            Alu = solve_alu(Alu, instructions, "{:d}".format(i))
+
+            print(k + 1, Alu.states, Alu.valid)
+
+        assert 0 == 1
+
+
+TestFirstInstructions().test_all()

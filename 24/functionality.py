@@ -75,6 +75,14 @@ def find_highest_monad(instructions):
     graph = {}
     graph = depth_first_search(graph, sn, current_z, instructions)
 
+    print(graph)
+    print(max([len(key) for key in graph.keys()]))
+    
+    full_length_sns = [
+        key for key, value in graph.items() if len(key) == 14
+    ]
+    print(full_length_sns)
+
     full_length_sns = [
         key for key, value in graph.items() if len(key) == 14 if value == 0
     ]
@@ -100,7 +108,7 @@ def find_solutions(current_node, desired_z, instructions):
         instruction_counter * 18 : (instruction_counter + 1) * 18
     ]
     for w in range(9, 0, -1):
-        for z_prior in range(300, -1, -1):
+        for z_prior in range(26, -1, -1):
             Alu = ALU()
             extended_instructions = ["inp z {:d}".format(z_prior)]
             extended_instructions.extend(current_instructions)
