@@ -77,14 +77,23 @@ class TestFirstInstructions:
         _instructions = read_instructions("input.txt")
         instructions = _instructions[:18]
 
-        Alu = ALU()
-        for k, i in enumerate([9, 9, 9, 9, 1, 9, 9, 3, 8, 1, 7, 9, 5, 9]):
-            # Alu = solve_alu(Alu, instructions, "{:d}".format(1))
-            instructions = _instructions[k * 18 : (k + 1) * 18]
-            # print(Alu.states)
-            Alu = solve_alu(Alu, instructions, "{:d}".format(i))
+        all_states = [
+            [i, j, k, l]
+            for i in range(1, 10)
+            for j in range(1, 10)
+            for k in range(1, 10)
+            for l in range(1, 10)
+        ]
+        with open("output.txt", "w") as f:
+            for states in all_states:
+                Alu = ALU()
+                for k, i in enumerate(states):
+                    instructions = _instructions[k * 18 : (k + 1) * 18]
+                    Alu = solve_alu(Alu, instructions, "{:d}".format(i))
 
-            print(k + 1, Alu.states, Alu.valid)
+                f.write("z: {:d}".format(Alu.states.get("z")))
+                f.write(", states: {:d}, {:d}, {:d}, {:d}".format(*states))
+                f.write("\n")
 
         assert 0 == 1
 
@@ -94,7 +103,7 @@ class TestFirstInstructions:
         z0 = 1
         z = []
         Alu = ALU()
-        for k, i in enumerate([9, 9, 9, 9, 1, 9, 9, 3, 8, 1, 7, 9, 5, 9]):
+        for k, i in enumerate([2, 9, 9, 9, 1, 9, 9, 3, 6, 9, 8, 4, 6, 9]):
             # Alu = solve_alu(Alu, instructions, "{:d}".format(1))
             instructions = _instructions[k * 18 : (k + 1) * 18]
             # print(Alu.states)
@@ -103,11 +112,8 @@ class TestFirstInstructions:
             print(k + 1, Alu.states, Alu.states.get("z") / z0, Alu.states.get("z") % 26)
             z0 = Alu.states.get("z")
             z.append(Alu.states.get("z"))
-        print(z)
-        for i in range(14):
-            print(i, z[-i - 2] / z[-i - 1], z[-i - 1] % 26)
 
         assert 0 == 1
 
 
-# TestFirstInstructions().test_all()
+# TestFirstInstructions().test_one_two()
