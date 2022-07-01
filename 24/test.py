@@ -91,17 +91,23 @@ class TestFirstInstructions:
     def test_all(self):
         _instructions = read_instructions("input.txt")
         instructions = _instructions[:18]
-
+        z0 = 1
+        z = []
         Alu = ALU()
-        for k, i in enumerate([8, 8, 8, 9, 1, 9, 9, 3, 8, 1, 7, 9, 5, 9]):
+        for k, i in enumerate([9, 9, 9, 9, 1, 9, 9, 3, 8, 1, 7, 9, 5, 9]):
             # Alu = solve_alu(Alu, instructions, "{:d}".format(1))
             instructions = _instructions[k * 18 : (k + 1) * 18]
             # print(Alu.states)
             Alu = solve_alu(Alu, instructions, "{:d}".format(i))
 
-            print(k + 1, Alu.states, Alu.valid)
+            print(k + 1, Alu.states, Alu.states.get("z") / z0, Alu.states.get("z") % 26)
+            z0 = Alu.states.get("z")
+            z.append(Alu.states.get("z"))
+        print(z)
+        for i in range(14):
+            print(i, z[-i - 2] / z[-i - 1], z[-i - 1] % 26)
 
         assert 0 == 1
 
 
-TestFirstInstructions().test_all()
+# TestFirstInstructions().test_all()
